@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'B Market - Your Trusted Supermarket',
-  description: 'Shop fresh groceries and quality products at B Market. Fast delivery, competitive prices, and 24/7 customer support.',
+  title: 'v0 App',
+  description: 'Created with v0',
   generator: 'v0.app',
   icons: {
     icon: [
