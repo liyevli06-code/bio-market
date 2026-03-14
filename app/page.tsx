@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { ShoppingCart, Search, Trash2, Plus, Minus, Package, ChevronLeft, Phone, Mail, MapPin } from 'lucide-react'
+import { ShoppingCart, Search, Trash2, Plus, Minus, Package, ChevronLeft, Phone, Instagram, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface Product {
@@ -100,7 +100,7 @@ export default function SupermarketPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button onClick={() => setShowCart(!showCart)} className="relative p-2 bg-emerald-500 rounded-full">
+          <button onClick={() => setShowCart(!showCart)} className="relative p-2 bg-emerald-50 rounded-full">
             <ShoppingCart size={24} />
             {cart.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
@@ -190,7 +190,7 @@ export default function SupermarketPage() {
         )}
       </main>
 
-      {/* FOOTER - İstədiyin Əlaqə Bölməsi */}
+      {/* FOOTER */}
       <footer className="bg-white border-t border-gray-200 mt-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -223,11 +223,14 @@ export default function SupermarketPage() {
                   </div>
                   <span>+994 50 000 00 00</span>
                 </li>
+                {/* YENİLƏNMİŞ INSTAGRAM HİSSƏSİ */}
                 <li className="flex items-center gap-3 text-gray-600 group">
                   <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
-                    <Mail size={18} />
+                    <Instagram size={18} />
                   </div>
-                  <span className="font-medium">info@bioaz1</span>
+                  <a href="https://instagram.com/bioaz1" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-emerald-600 transition">
+                    @bioaz1
+                  </a>
                 </li>
                 <li className="flex items-center gap-3 text-gray-600 group">
                   <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
