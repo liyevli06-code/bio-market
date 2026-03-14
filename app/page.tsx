@@ -168,7 +168,7 @@ export default function SupermarketPage() {
       <header className="bg-secondary text-secondary-foreground sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="text-2xl font-bold flex items-center gap-2">
-            🏪 ARAZ Market
+            🏪 BİO market
           </div>
 
           {/* Desktop Navigation */}
