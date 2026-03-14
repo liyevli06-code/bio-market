@@ -1,201 +1,206 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react' // useEffect əlavə edildi
-import { ShoppingCart, Search, Menu, X, Home, LogOut, User } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { ShoppingCart, Search, Trash2, Plus, Minus, Package, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface Product {
   id: number
   name: string
   category: string
-  price: number
+  price: number | string
   image: string
-  discount?: number
+  discount?: number | string
 }
 
 interface CartItem extends Product {
   quantity: number
 }
 
-// Köhnə PRODUCTS siyahısını bura birbaşa yazmırıq, state-in içində birləşdirəcəyik
 const INITIAL_PRODUCTS: Product[] = [
-  { id: 1, name: 'Alma (Fuji)', category: 'Meyvə', price: 2.50, image: '🍎', discount: 10 },
-  { id: 2, name: 'Pomidor', category: 'Tərəvəz', price: 3.00, image: '🍅' },
-  { id: 3, name: 'Salam', category: 'Et məhsulları', price: 8.50, image: '🥩' },
-  { id: 4, name: 'Süd', category: 'Süd məhsulları', price: 1.99, image: '🥛', discount: 15 },
-  { id: 5, name: 'Peynir', category: 'Süd məhsulları', price: 5.00, image: '🧀' },
-  { id: 6, name: 'Çörək', category: 'Fırın məhsulları', price: 0.99, image: '🍞' },
-  { id: 12, name: 'Şokolad', category: 'Şirniyyat', price: 3.50, image: '🍫', discount: 5 }
+  { id: 1, name: 'Orqanik Alma', category: 'Meyvə', price: 2.50, image: '🍎' },
+  { id: 2, name: 'Təzə Brokoli', category: 'Tərəvəz', price: 4.1, image: '🥦' },
+  { id: 3, name: 'Kənd Südü', category: 'Süd məhsulları', price: 1.8, image: '🥛' },
+  { id: 4, name: 'Təbii Bal', category: 'Şirniyyat', price: 12, image: '🍯' }
 ]
 
 const CATEGORIES = ['Hamısı', 'Meyvə', 'Tərəvəz', 'Et məhsulları', 'Süd məhsulları', 'Fırın məhsulları', 'Şirniyyat']
 
 export default function SupermarketPage() {
-  const [allProducts, setAllProducts] = useState<Product[]>(INITIAL_PRODUCTS) // Bütün məhsullar üçün state
+  const [allProducts, setAllProducts] = useState<Product[]>(INITIAL_PRODUCTS)
   const [selectedCategory, setSelectedCategory] = useState('Hamısı')
   const [cart, setCart] = useState<CartItem[]>([])
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showCart, setShowCart] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // --- ADMİN PANELİNDƏN GƏLƏN MƏHSULLARI YÜKLƏ ---
   useEffect(() => {
+    setMounted(true)
     const saved = localStorage.getItem("my_products")
     if (saved) {
-      const adminProducts = JSON.parse(saved)
-      // Sabit məhsullarla Admin-dən gələnləri birləşdiririk
-      setAllProducts([...INITIAL_PRODUCTS, ...adminProducts])
+      try {
+        const adminProducts = JSON.parse(saved)
+        setAllProducts([...INITIAL_PRODUCTS, ...adminProducts])
+      } catch (e) {
+        console.error("Məlumat oxunarkən xəta:", e)
+      }
     }
   }, [])
 
-  // İndi filtrləməni allProducts üzərindən edirik
   const filteredProducts = allProducts.filter(product => {
-    const matchesCategory = selectedCategory === 'Hamısı' || product.category === selectedCategory
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const name = product?.name || ""
+    const category = product?.category || ""
+    const matchesCategory = selectedCategory === 'Hamısı' || category === selectedCategory
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
   })
 
-  const addToCart = useCallback((product: Product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id)
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        )
+  // SƏBƏTƏ ƏLAVƏ ET
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const exists = prev.find(item => item.id === product.id)
+      if (exists) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
       }
-      return [...prevCart, { ...product, quantity: 1 }]
+      return [...prev, { ...product, quantity: 1 }]
     })
-  }, [])
+  }
 
-  const removeFromCart = useCallback((productId: number) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== productId))
-  }, [])
+  // SAYI DƏYİŞDİR
+  const updateQuantity = (id: number, delta: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = item.quantity + delta
+        return newQty > 0 ? { ...item, quantity: newQty } : item
+      }
+      return item
+    }))
+  }
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId)
-    } else {
-      setCart(prevCart =>
-        prevCart.map(item => item.id === productId ? { ...item, quantity } : item)
-      )
-    }
-  }, [removeFromCart])
+  // SƏBƏTDƏN SİL
+  const removeFromCart = (id: number) => {
+    setCart(prev => prev.filter(item => item.id !== id))
+  }
 
-  const totalPrice = cart.reduce((sum, item) => {
-    const discountedPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price
-    return sum + discountedPrice * item.quantity
-  }, 0)
+  const getPrice = (product: Product) => {
+    return Number(product.price) || 0
+  }
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const cartTotal = cart.reduce((sum, item) => sum + (getPrice(item) * item.quantity), 0)
+
+  if (!mounted) return null
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="bg-secondary text-secondary-foreground sticky top-0 z-50 shadow-md">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="bg-emerald-600 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold flex items-center gap-2">
-            🏪 BİO market
+          <div className="text-xl font-bold flex items-center gap-2 cursor-pointer" onClick={() => setShowCart(false)}>
+             <Package /> BİO MARKET
+          </div>
+          
+          <div className="hidden md:flex flex-1 mx-10">
+            <input 
+              type="text" 
+              placeholder="Axtar..." 
+              className="w-full max-w-sm px-4 py-2 rounded-full bg-emerald-700 border-none text-white outline-none"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
 
-          <div className="hidden md:flex items-center gap-6 flex-1 mx-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 opacity-60" />
-              <input
-                type="text"
-                placeholder="Ürün ara..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-accent bg-opacity-20 text-secondary-foreground border border-accent border-opacity-30 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button onClick={() => setShowCart(!showCart)} className="relative p-2 hover:bg-accent hover:bg-opacity-20 rounded-lg transition">
-              <ShoppingCart className="w-6 h-6" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                  {totalItems}
-                </span>
-              )}
-            </button>
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 rounded-lg transition">
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+          <button onClick={() => setShowCart(!showCart)} className="relative p-2 bg-emerald-500 rounded-full">
+            <ShoppingCart size={24} />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {cart.reduce((a, b) => a + b.quantity, 0)}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Category Filter */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Katagoriyalar</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {CATEGORIES.map(category => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-semibold transition ${
-                  selectedCategory === category ? 'bg-primary text-primary-foreground shadow-lg' : 'bg-card text-card-foreground border hover:bg-muted'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
+        {!showCart ? (
+          <>
+            <div className="flex gap-2 overflow-x-auto pb-6">
+              {CATEGORIES.map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-6 py-2 rounded-full whitespace-nowrap transition ${selectedCategory === cat ? 'bg-emerald-600 text-white' : 'bg-white border'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {!showCart && (
-            <>
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map(product => (
-                  <div key={product.id} className="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lg transition">
-                    <div className="p-4 bg-accent bg-opacity-10 text-center text-6xl min-h-[150px] flex items-center justify-center relative">
-                      {/* Əgər şəkil linkdirsə img tag-ı, deyilsə emoji kimi göstər */}
-                      {product.image.startsWith('http') ? (
-                        <img src={product.image} alt={product.name} className="h-24 w-24 object-contain" />
-                      ) : (
-                        <span>{product.image || '📦'}</span>
-                      )}
-                      {product.discount && (
-                        <div className="absolute top-2 right-2 bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-sm font-bold">
-                          -{product.discount}%
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold mb-1">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-3">{product.category}</p>
-                      <div className="flex items-baseline gap-2 mb-4">
-                        <span className="text-2xl font-bold text-primary">
-                          {product.discount
-                            ? (Number(product.price) * (1 - product.discount / 100)).toFixed(2)
-                            : Number(product.price).toFixed(2)} AZN
-                        </span>
-                      </div>
-                      <Button onClick={() => addToCart(product)} className="w-full bg-primary text-primary-foreground hover:bg-green-700">
-                        Səbətə Əlavə Et
-                      </Button>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="bg-white border rounded-2xl overflow-hidden p-4 shadow-sm">
+                  <div className="h-40 bg-gray-50 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+                    {product.image?.startsWith('http') ? (
+                      <img src={product.image} className="h-full w-full object-contain p-2" onError={(e) => { (e.target as HTMLImageElement).src = "https://cdn-icons-png.flaticon.com/512/679/679821.png" }} />
+                    ) : (
+                      <span className="text-5xl">{product.image || '📦'}</span>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12 text-muted-foreground">Ürün tapılmadı.</div>
-              )}
-            </>
-          )}
-
-          {/* Səbət Hissəsi */}
-          {showCart && (
-             <div className="col-span-full">
-                <h2 className="text-2xl font-bold mb-6">Alış-veriş Səbəti</h2>
-                {/* Səbət detalları burada (köhnə kodun eynisi) */}
-                <Button onClick={() => setShowCart(false)} className="mb-4">Geri Qayıt</Button>
-                {/* ... (Səbət siyahısı bura gəlir) */}
-             </div>
-          )}
-        </div>
+                  <h3 className="font-bold text-lg">{product.name}</h3>
+                  <p className="text-emerald-700 font-black text-xl my-2">{getPrice(product).toFixed(2)} AZN</p>
+                  <Button onClick={() => addToCart(product)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">
+                    Səbətə At
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="max-w-2xl mx-auto">
+            <button onClick={() => setShowCart(false)} className="flex items-center gap-2 text-emerald-600 font-bold mb-6">
+              <ChevronLeft /> Alış-verişə davam et
+            </button>
+            <h2 className="text-3xl font-black mb-6">Səbətiniz</h2>
+            
+            {cart.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-3xl border border-dashed">
+                <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-gray-500">Səbətiniz hələ ki, boşdur.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cart.map(item => (
+                  <div key={item.id} className="bg-white p-4 rounded-2xl border flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center text-2xl">
+                       {item.image?.startsWith('http') ? <img src={item.image} className="h-10 object-contain" /> : item.image}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold">{item.name}</h4>
+                      <p className="text-emerald-600 font-bold">{getPrice(item).toFixed(2)} AZN</p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:bg-white rounded shadow-sm"><Minus size={16}/></button>
+                      <span className="font-bold w-4 text-center">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:bg-white rounded shadow-sm"><Plus size={16}/></button>
+                    </div>
+                    <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-2"><Trash2 size={20}/></button>
+                  </div>
+                ))}
+                
+                <div className="mt-8 bg-emerald-600 text-white p-6 rounded-3xl shadow-xl shadow-emerald-200">
+                  <div className="flex justify-between text-lg opacity-90 mb-2">
+                    <span>Məhsul sayı:</span>
+                    <span>{cart.reduce((a, b) => a + b.quantity, 0)} ədəd</span>
+                  </div>
+                  <div className="flex justify-between text-2xl font-black">
+                    <span>Cəmi:</span>
+                    <span>{cartTotal.toFixed(2)} AZN</span>
+                  </div>
+                  <button className="w-full bg-white text-emerald-700 mt-6 py-4 rounded-2xl font-black text-lg hover:bg-gray-100 transition" onClick={() => alert("Ödəniş sisteminə keçid tezliklə!")}>
+                    Sifarişi Tamamla
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   )
