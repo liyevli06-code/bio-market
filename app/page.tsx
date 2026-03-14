@@ -227,7 +227,7 @@ export default function SupermarketPage() {
                   <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
                     <Mail size={18} />
                   </div>
-                  <span className="font-medium">info@bio.az</span>
+                  <span className="font-medium">info@bioaz1</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-600 group">
                   <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition">
