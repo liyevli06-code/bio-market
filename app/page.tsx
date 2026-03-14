@@ -419,13 +419,13 @@ export default function SupermarketPage() {
               <h4 className="font-semibold mb-4">Bizimlə Əlaqə</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li>📞 +994 50 000 00 00</li>
-                <li>📧 info@araz.az</li>
+                <li>📧 info@bio.az</li>
                 <li>📍 Bakı, Azərbaycən</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-secondary mt-8 pt-8 text-sm text-center opacity-60">
-            <p>&copy; 2024 ARAZ Market. Bütün hüquqlar qorunur.</p>
+            <p>&copy; 2024 BİO Market. Bütün hüquqlar qorunur.</p>
           </div>
         </div>
       </footer>
