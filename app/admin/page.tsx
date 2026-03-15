@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Package, Plus, ArrowLeft, Image as ImageIcon } from 'lucide-react'
+import { Package, ArrowLeft, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+// 1. Firebase-i və bazanı import edirik
+import { db } from '@/lib/firebase' 
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const CATEGORIES = ['Meyvə', 'Tərəvəz', 'Et məhsulları', 'Süd məhsulları', 'Fırın məhsulları', 'Şirniyyat']
 
@@ -11,12 +14,12 @@ export default function AdminPage() {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('Meyvə')
   const [price, setPrice] = useState('')
-  const [image, setImage] = useState('')
+  const = useState('')
   const [loading, setLoading] = useState(false)
 
-  // ƏSAS HİSSƏ: Məhsulu bazaya (Neon) göndərən funksiya
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
+    
     if (!name || !price || !image) {
       alert("Zəhmət olmasa bütün xanaları doldurun!")
       return
@@ -24,31 +27,28 @@ export default function AdminPage() {
 
     setLoading(true)
 
-    const newProduct = { 
-      name, 
-      category, 
-      price: parseFloat(price), 
-      image 
-    }
-
     try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProduct),
-      })
+      // 2. Məlumatı birbaşa Firebase Firestore-a göndəririk
+      // Bu məlumat artıq buludda saxlanılacaq və hər kəs görəcək
+      await addDoc(collection(db, "products"), {
+        name,
+        category,
+        price: parseFloat(price),
+        image,
+        createdAt: serverTimestamp() // Məhsulun əlavə edilmə vaxtı
+      });
 
-      if (response.ok) {
-        alert("Məhsul uğurla bazaya əlavə edildi! Artıq həm telefonda, həm də kompüterdə görünəcək.")
-        setName('')
-        setPrice('')
-        setImage('')
-      } else {
-        alert("Xəta baş verdi.")
-      }
+      alert("Məhsul uğurla bazaya əlavə edildi! Artıq hər kəs görə biləcək.");
+      
+      // Formu təmizləyirik
+      setName('')
+      setPrice('')
+      setImage('')
+      setCategory('Meyvə')
+      
     } catch (error) {
-      console.error("Göndərmə xətası:", error)
-      alert("Baza ilə əlaqə qurulmadı.")
+      console.error("Firebase xətası:", error)
+      alert("Xəta baş verdi. Zəhmət olmasa Firebase qaydalarını (Rules) yoxlayın.")
     } finally {
       setLoading(false)
     }
@@ -66,7 +66,7 @@ export default function AdminPage() {
             <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
               <Package size={32} />
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-800">Yeni Məhsul</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-800">Yeni Məhsul (Bulud Bazası)</h1>
           </div>
 
           <form onSubmit={handleAddProduct} className="space-y-6">
@@ -76,8 +76,9 @@ export default function AdminPage() {
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition text-black"
                 placeholder="Məs: Qırmızı Alma"
+                required
               />
             </div>
 
@@ -87,7 +88,7 @@ export default function AdminPage() {
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition text-black"
                 >
                   {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
@@ -99,8 +100,9 @@ export default function AdminPage() {
                   step="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition text-black"
                   placeholder="0.00"
+                  required
                 />
               </div>
             </div>
@@ -113,11 +115,12 @@ export default function AdminPage() {
                   type="text" 
                   value={image}
                   onChange={(e) => setImage(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition text-black"
                   placeholder="https://example.com/image.jpg"
+                  required
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-2">Qeyd: Google-dan şəkli götürərkən "Копировать URL картинки" seçin.</p>
+              <p className="text-xs text-gray-400 mt-2">Qeyd: Şəkil linkinin işlədiyindən əmin olun.</p>
             </div>
 
             <Button 
@@ -125,7 +128,7 @@ export default function AdminPage() {
               disabled={loading}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-200 transition-all active:scale-95"
             >
-              {loading ? "Gözləyin..." : "Məhsulu Bazaya Əlavə Et"}
+              {loading ? "Bazaya yazılır..." : "Məhsulu Hər Kəs Üçün Əlavə Et"}
             </Button>
           </form>
         </div>
