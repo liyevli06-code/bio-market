@@ -3,36 +3,25 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-// Şriftləri burada təyin edirik
+// Fontları təyin edirik
 const geistSans = Geist({
   subsets: ["latin"],
   variable: "--font-geist-sans",
+  display: 'swap', // Font yüklənənə qədər sistem fontunu göstərsin (xəta verməsin)
 });
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Bio Market', // Layihənin adını bura yaza bilərsən
+  title: 'Bio Market',
   description: 'Natural and Ecological Products',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
+    icon: '/icon.svg', // Daha sadə ikon yolu (xəta riskini azaldır)
     apple: '/apple-icon.png',
   },
 }
@@ -43,9 +32,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      {/* className hissəsinə şrift dəyişənlərini əlavə etdik */}
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+    <html lang="az"> {/* Saytın dilini Azərbaycan dili etdik */}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <Analytics />
       </body>
