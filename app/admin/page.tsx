@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Package, ArrowLeft, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-// 1. Firebase-i və bazanı import edirik (lib/firebase.ts faylının olduğundan əmin ol)
+// Firebase-i və bazanı import edirik (lib/firebase.ts faylının olduğundan əmin ol)
 import { db } from '@/lib/firebase' 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('Meyvə')
   const [price, setPrice] = useState('')
-  const = useState('') // Səhv burada idi: əlavə olundu
+  const = useState('') // Bura düzəldildi:
   const [loading, setLoading] = useState(false)
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -28,7 +28,7 @@ export default function AdminPage() {
     setLoading(true)
 
     try {
-      // 2. Məlumatı Firebase Firestore-a "products" kolleksiyasına göndəririk
+      // Məlumatı Firebase Firestore-a "products" kolleksiyasına göndəririk
       await addDoc(collection(db, "products"), {
         name: name,
         category: category,
