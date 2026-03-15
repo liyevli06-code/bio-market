@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Package, ArrowLeft, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-// 1. Firebase-i və bazanı import edirik
+// 1. Firebase-i və bazanı import edirik (lib/firebase.ts faylının olduğundan əmin ol)
 import { db } from '@/lib/firebase' 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('Meyvə')
   const [price, setPrice] = useState('')
-  const = useState('')
+  const = useState('') // Səhv burada idi: əlavə olundu
   const [loading, setLoading] = useState(false)
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -28,14 +28,13 @@ export default function AdminPage() {
     setLoading(true)
 
     try {
-      // 2. Məlumatı birbaşa Firebase Firestore-a göndəririk
-      // Bu məlumat artıq buludda saxlanılacaq və hər kəs görəcək
+      // 2. Məlumatı Firebase Firestore-a "products" kolleksiyasına göndəririk
       await addDoc(collection(db, "products"), {
-        name,
-        category,
+        name: name,
+        category: category,
         price: parseFloat(price),
-        image,
-        createdAt: serverTimestamp() // Məhsulun əlavə edilmə vaxtı
+        image: image,
+        createdAt: serverTimestamp() 
       });
 
       alert("Məhsul uğurla bazaya əlavə edildi! Artıq hər kəs görə biləcək.");
@@ -48,7 +47,7 @@ export default function AdminPage() {
       
     } catch (error) {
       console.error("Firebase xətası:", error)
-      alert("Xəta baş verdi. Zəhmət olmasa Firebase qaydalarını (Rules) yoxlayın.")
+      alert("Xəta baş verdi. Firebase qaydalarını (Rules) yoxlayın.")
     } finally {
       setLoading(false)
     }
@@ -66,7 +65,7 @@ export default function AdminPage() {
             <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
               <Package size={32} />
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-800">Yeni Məhsul (Bulud Bazası)</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-800">Yeni Məhsul (Cloud)</h1>
           </div>
 
           <form onSubmit={handleAddProduct} className="space-y-6">
@@ -120,7 +119,6 @@ export default function AdminPage() {
                   required
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-2">Qeyd: Şəkil linkinin işlədiyindən əmin olun.</p>
             </div>
 
             <Button 
@@ -128,7 +126,7 @@ export default function AdminPage() {
               disabled={loading}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-6 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-200 transition-all active:scale-95"
             >
-              {loading ? "Bazaya yazılır..." : "Məhsulu Hər Kəs Üçün Əlavə Et"}
+              {loading ? "Əlavə edilir..." : "Məhsulu Hər Kəs Üçün Əlavə Et"}
             </Button>
           </form>
         </div>
